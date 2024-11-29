@@ -57,9 +57,11 @@ func main() {
 	// extract player team, first name, and last name
 	c.OnHTML("div.PlayerSummary_mainInnerBio__JQkoj", func(e *colly.HTMLElement) {
 		teamText := strings.TrimSpace(e.ChildText("p.PlayerSummary_mainInnerInfo__jv3LO"))
-		teamParts := strings.Fields(teamText)
-		if len(teamParts) >= 2 {
-			currentPlayer.Team = teamParts[0] + " " + teamParts[1]
+
+		teamParts := strings.SplitN(teamText, "|", 2)
+		if len(teamParts) > 0 {
+			teamName := strings.SplitN(teamParts[0], "#", 2)[0]
+			currentPlayer.Team = strings.TrimSpace(teamName)
 		} else {
 			currentPlayer.Team = teamText
 		}
