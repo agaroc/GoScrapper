@@ -1,6 +1,7 @@
 package scraper
 
 import (
+	"bufio"
 	"encoding/csv"
 	"fmt"
 	"log"
@@ -47,6 +48,29 @@ func writeToCSV(players []Player, filename string) {
 }
 
 func RunScraper() {
+
+	var playerURLs []string
+	fmt.Println("Enter NBA player profile URLS from NBA websiter (1 per line). Enter 'done' when ready: ")
+
+	// read user input for the URLS
+	scanner := bufio.NewScanner(os.Stdin)
+	for {
+		fmt.Print("Enter URL: ")
+		scanner.Scan()
+		url := strings.TrimSpace(scanner.Text())
+		if url == "done" {
+			break
+		}
+		if url != "" {
+			playerURLs = append(playerURLs, url)
+		}
+	}
+	//check if nothing was entered
+	if len(playerURLs) == 0 {
+		fmt.Println("No URLs provided. Exiting.")
+		return
+	}
+
 	players := []Player{}
 
 	c := colly.NewCollector()
@@ -68,6 +92,8 @@ func RunScraper() {
 
 		currentPlayer.FirstName = strings.TrimSpace(e.ChildText("p.PlayerSummary_playerNameText___MhqC:nth-of-type(2)"))
 		currentPlayer.LastName = strings.TrimSpace(e.ChildText("p.PlayerSummary_playerNameText___MhqC:nth-of-type(3)"))
+
+	
 	})
 
 	// extract player stats
@@ -91,19 +117,11 @@ func RunScraper() {
 		currentPlayer = Player{} // Reset for next player
 	})
 
-	// visit player URLs
-	playerURLs := []string{
-		"https://www.nba.com/stats/player/1630163",
-		"https://www.nba.com/player/201939/stephen-curry",
-		"https://www.nba.com/player/203110/draymond-green",
-		"https://www.nba.com/player/1627741/buddy-hield",
-		"https://www.nba.com/player/1626172/kevon-looney",
-		"https://www.nba.com/player/1627780/gary-payton-ii",
-		"https://www.nba.com/player/203952/andrew-wiggins",
-		"https://www.nba.com/player/203937/kyle-anderson",
-	}
+	
 
+	// Visit player URLs provided by the user
 	for _, url := range playerURLs {
+		fmt.Printf("Scraping %s...\n", url)
 		c.Visit(url)
 	}
 
